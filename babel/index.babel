@@ -1,0 +1,63 @@
+//I used d3 v3 due to lack of tutorials on v4 to Force Directed Graphs.
+
+let w = 800
+let h = 550
+d3.json('https://raw.githubusercontent.com/DealPete/forceDirected/master/countries.json', (json) => {
+
+   let svg = d3.select('.render')
+      .append('svg')
+      .attr('width', w)
+      .attr('height', h)
+   let div = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0)
+   let force = d3.layout.force()
+      .nodes(json.nodes)
+      .links(json.links)
+      .size([w, h])
+      .linkDistance([25])
+      .charge([-40])
+      .start()
+
+   let links = svg.selectAll('line')
+      .data(json.links)
+      .enter()
+      .append('line')
+      .attr('class', 'link')
+
+   let nodes = d3.select('.imageplacer').selectAll('image')
+      .data(json.nodes)
+      .enter()
+      .append('image')
+      .attr("class", function(d) {
+         return 'flag flag-' + d.code
+      })
+      .call(force.drag)
+      .on("mouseover", function(d) {
+       div.transition()
+         .duration(200)
+         .style("opacity", .9);
+       div.html(d.country)
+         .style("left", (d3.event.pageX) + "px")
+         .style("top", (d3.event.pageY - 28) + "px");
+       })
+     .on("mouseout", function(d) {
+       div.transition()
+         .duration(200)
+         .style("opacity", 0);
+       })
+
+   force.on('tick', () => {
+
+      links.attr('x1', (d) => d.source.x)
+         .attr('y1', (d) => d.source.y)
+         .attr('x2', (d) => d.target.x)
+         .attr('y2', (d) => d.target.y)
+
+      nodes.attr('x', (d) => d.x)
+         .attr('y', (d) => d.y)
+         .style("left", (d) => "" + d.x - 8 + "px")
+         .style("top", (d) => "" + d.y - 5 + "px")
+   })
+
+})
